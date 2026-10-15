@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nike Revenue & Margin Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--paper:#E9ECEF;--card:#FFFFFF;--ink:#1B2430;--muted:#5E6875;--line:#D5DAE0;--soft:#F4F6F8;
+--orange:#F2542D;--navy:#1F4E79;--gold:#E0A100;--green:#2A9D8F;--stone:#8D99AE;--red:#D1495B;--sand:#EADBB4;
+--display:"Poppins","Segoe UI",Arial,sans-serif;--body:"Poppins","Segoe UI",Arial,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#12171E;--card:#1A212A;--ink:#E8ECF1;--muted:#98A2AE;--line:#2C3541;--soft:#212934;--navy:#7FA6D9;--stone:#8A93A0}}
+:root[data-theme="dark"]{--paper:#12171E;--card:#1A212A;--ink:#E8ECF1;--muted:#98A2AE;--line:#2C3541;--soft:#212934;--navy:#7FA6D9;--stone:#8A93A0}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.55 var(--body)}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}
+nav{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:100vh;padding:28px 18px;border-right:1px solid var(--line)}
+.brand{font:700 21px/1.1 var(--display);letter-spacing:.01em;margin:0 0 4px}
+.brand span{color:var(--orange)}
+.sub{color:var(--muted);font-size:13px;margin:0 0 28px}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;color:var(--muted);
+font:500 14px/1.3 var(--display);padding:10px 12px;cursor:pointer;margin-bottom:2px}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{color:var(--ink);border-left-color:var(--orange);background:var(--card)}
+nav button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.foot{margin-top:28px;font-size:12px;color:var(--muted)}
+main{padding:28px clamp(16px,3vw,40px) 60px;max-width:1280px}
+h1{font:700 clamp(24px,3.2vw,36px)/1.15 var(--display);letter-spacing:-.01em;margin:0 0 6px}
+.lede{color:var(--muted);max-width:72ch;margin:0 0 24px}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 18px 14px}
+.card h3{font:600 16px/1.3 var(--display);margin:0 0 2px}
+.card .note{font-size:13px;color:var(--muted);margin:0 0 10px}
+.ch{position:relative;height:300px}.ch.tall{height:360px}
+.score{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:3px solid var(--ink);border-bottom:1px solid var(--line);margin-bottom:22px}
+.score div{padding:14px 16px 16px;border-right:1px solid var(--line)}.score div:last-child{border-right:0}
+.score b{display:block;font:700 clamp(28px,3.8vw,48px)/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.score small{display:block;color:var(--muted);font-size:13px;margin-top:6px}
+.neg{color:var(--red)}.pos{color:var(--green)}
+.insight{border-left:3px solid var(--orange);padding:4px 0 4px 14px;margin:18px 0 0;max-width:80ch}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tbl th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px}
+.tbl td{border-bottom:1px solid var(--line);padding:7px 8px}.tbl td.n,.tbl th.n{text-align:right}
+.wrap{overflow-x:auto}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.seg button{font:500 13px var(--body);border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;cursor:pointer}
+.seg button:first-child{border-radius:4px 0 0 4px}.seg button:last-child{border-radius:0 4px 4px 0}.seg button+button{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.hm{display:grid;gap:3px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.hm div{padding:9px 4px;text-align:center;border-radius:3px}.hm .lab{text-align:left;background:none;color:var(--muted);padding-left:0}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.sl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-bottom:12px;font-size:14px}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--orange)}
+.sl output{font-weight:600;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;background:var(--soft);color:var(--muted)}
+@media (max-width:900px){.shell{grid-template-columns:1fr}nav{position:sticky;top:0;height:auto;z-index:5;background:var(--paper);display:flex;gap:4px;overflow-x:auto;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.brand,.sub,.foot{display:none}nav button{white-space:nowrap;width:auto;border-left:0;border-bottom:3px solid transparent;font-size:14px;margin:0}
+nav button[aria-selected="true"]{border-bottom-color:var(--orange)}.g2,.g3{grid-template-columns:1fr}.score{grid-template-columns:repeat(2,1fr)}.score div:nth-child(2){border-right:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav role="tablist" aria-label="Dashboard views">
+  <p class="brand">Nike <span>/</span> Revenue Lab</p>
+  <p class="sub">FY2017–FY2026 actuals, FY2027–FY2029 outlook</p>
+  <button role="tab" data-v="overview" aria-selected="true">Overview</button>
+  <button role="tab" data-v="regions" aria-selected="false">Regional dynamics</button>
+  <button role="tab" data-v="forecast" aria-selected="false">Forecast</button>
+  <button role="tab" data-v="segments" aria-selected="false">Performance segments</button>
+  <button role="tab" data-v="comove" aria-selected="false">Co-movement</button>
+  <button role="tab" data-v="scenario" aria-selected="false">Scenario planner</button>
+  <p class="foot">Source: Nike, Inc. 10-K filings via the Nike data workbook, cleaned and reconciled. USD billions. Fiscal year ends 31 May.</p>
+</nav>
+<main>
+
+<section class="view on" id="overview" role="tabpanel">
+  <h1>Revenue has stabilised. Margins have not.</h1>
+  <p class="lede">Nike lost $5.0B of revenue from its FY2024 peak and four points of operating margin. The analysis shows a structural break in FY2025, with margin recovery, not demand, as the main lever to FY2029.</p>
+  <div class="score">
+    <div><b>$46.4B</b><small>FY2026 revenue <span class="neg">−9.7% vs FY24 peak</span></small></div>
+    <div><b>8.2%</b><small>Operating margin <span class="neg">from 12.3% in FY24</span></small></div>
+    <div><b>34%</b><small>of the decline came from Greater China</small></div>
+    <div><b>$45.1B</b><small>FY2029 base case <span class="muted">(P10 $40.2B, P90 $50.2B)</span></small></div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3>Revenue and operating margin</h3><p class="note">Bars: revenue ($B). Line: operating margin (right axis).</p><div class="ch"><canvas id="cOv1"></canvas></div></div>
+    <div class="card"><h3>Where the $5B went</h3><p class="note">Change in revenue FY2024 → FY2026 by segment ($B)</p><div class="ch"><canvas id="cOv2"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Operating margin bridge, FY2024 → FY2026</h3><p class="note">Overhead that did not shrink with revenue explains about 60% of the margin loss.</p><div class="ch" style="height:240px"><canvas id="cOv3"></canvas></div></div>
+</section>
+
+<section class="view" id="regions" role="tabpanel">
+  <h1>A regime break in FY2025</h1>
+  <p class="lede">Regression on 80 region-quarters: log revenue with region trends, quarter seasonality and a FY2025+ shift. R² <span id="r2"></span>; the break is significant (F-test p < 0.001).</p>
+  <div class="ctrl seg" id="regSel"></div>
+  <div class="grid g3">
+    <div class="card"><h3 id="regTitle"></h3><p class="note">Actual quarterly revenue ($B) vs model fit (dashed)</p><div class="ch"><canvas id="cReg1"></canvas></div></div>
+    <div class="card"><h3>Estimated effects</h3><p class="note">95% confidence intervals, robust (HC3) standard errors</p>
+      <div class="wrap"><table class="tbl" id="tDyn"><thead><tr><th>Region</th><th class="n">Trend p.a.</th><th class="n">FY25+ shift</th><th class="n">p (shift)</th></tr></thead><tbody></tbody></table></div>
+      <p class="insight">Before FY2025 North America and APLA compounded at ~6.5% a year. Since then, each sits 13–17% below that path.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Regional revenue, FY2017–FY2026</h3><p class="note">$B, stacked</p><div class="ch"><canvas id="cReg2"></canvas></div></div>
+</section>
+
+<section class="view" id="forecast" role="tabpanel">
+  <h1>A flat outlook with honest uncertainty</h1>
+  <p class="lede">Five models plus an ensemble, compared on rolling-origin validation. Bands are 80% and 95% prediction intervals calibrated to real out-of-sample error.</p>
+  <div class="ctrl seg" id="fcSel"></div>
+  <div class="grid g3">
+    <div class="card"><h3 id="fcTitle"></h3><p class="note" id="fcNote"></p><div class="ch tall"><canvas id="cFc"></canvas></div></div>
+    <div class="card"><h3>Model comparison</h3><p class="note">Out-of-sample MASE (below 1 beats a seasonal-naive forecast). Selected model in bold.</p><div class="wrap"><table class="tbl" id="tPerf"><thead><tr><th>Model</th><th class="n">MAPE</th><th class="n">MASE</th></tr></thead><tbody></tbody></table></div></div>
+  </div>
+</section>
+
+<section class="view" id="segments" role="tabpanel">
+  <h1>Who is gaining and losing ground</h1>
+  <p class="lede">K-means clustering (k = 3) of each region-year on growth, two-year growth, growth versus the company, and share change. Segments are relative to company performance.</p>
+  <div class="card"><h3>Segment by region and year</h3><p class="note">Cell value = year-on-year revenue growth</p><div class="wrap"><div class="hm" id="hm"></div></div>
+    <div class="legend"><span><i style="background:var(--red)"></i>Losing ground</span><span><i style="background:#EADBB4"></i>In line</span><span><i style="background:var(--green)"></i>Gaining ground</span></div></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Segments in principal-component space</h3><p class="note">Two components capture 91% of the feature variance</p><div class="ch"><canvas id="cSeg"></canvas></div></div>
+    <div class="card"><h3>Segment profiles</h3><p class="note">Average of member region-years</p><div class="wrap"><table class="tbl" id="tSeg"><thead><tr><th>Segment</th><th class="n">n</th><th class="n">YoY growth</th><th class="n">vs company</th><th class="n">Share chg</th></tr></thead><tbody></tbody></table></div>
+      <p class="insight">In FY2026 North America is the only region gaining ground. Greater China and Converse are both losing it.</p></div>
+  </div>
+</section>
+
+<section class="view" id="comove" role="tabpanel">
+  <h1>Moving together, and apart</h1>
+  <p class="lede">Correlations on revenue levels are inflated by shared trend. Growth-rate correlations show the real co-movement and the cannibalisation signals.</p>
+  <div class="grid g2">
+    <div class="card"><h3>Regional correlation</h3><div class="ctrl seg" id="corrSel" style="margin-top:8px"><button aria-pressed="false" data-k="levels">Revenue levels</button><button aria-pressed="true" data-k="growth">YoY growth</button></div><div class="wrap"><div class="hm" id="corrHm"></div></div>
+      <p class="insight">Greater China is decoupled (r = 0.03 with North America): it diversifies revenue but will not recover alongside the West.</p></div>
+    <div class="card"><h3>Cannibalisation tests</h3><p class="note">Correlation of annual growth rates, n = 9</p><div class="ch" style="height:250px"><canvas id="cCann"></canvas></div><div class="wrap"><table class="tbl" id="tCann"><thead><tr><th>Pair</th><th class="n">r</th><th>Verdict</th></tr></thead><tbody></tbody></table></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Nike Direct vs wholesale</h3><p class="note">During the DTC push (FY19–23) Direct added $9.6B while wholesale still grew $2.0B: gains were additive, not taken from wholesale.</p><div class="ch"><canvas id="cChan"></canvas></div></div>
+</section>
+
+<section class="view" id="scenario" role="tabpanel">
+  <h1>Scenario planner</h1>
+  <p class="lede">Start from a preset, then move any driver. The P&L rebuilds from FY2026 actuals. Bear and Bull are calibrated to the P10 and P90 of a 20,000-run Monte Carlo.</p>
+  <div class="ctrl seg" id="scSel"><button data-s="Bear" aria-pressed="false">Bear</button><button data-s="Base" aria-pressed="true">Base</button><button data-s="Bull" aria-pressed="false">Bull</button></div>
+  <div class="grid g3">
+    <div class="card"><h3>Revenue path</h3><p class="note">Presets (thin) and your scenario (orange), $B</p><div class="ch tall"><canvas id="cSc"></canvas></div>
+      <div class="wrap"><table class="tbl" id="tSc"><thead><tr><th></th><th class="n">FY2027</th><th class="n">FY2028</th><th class="n">FY2029</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card" id="sliders"><h3>Drivers</h3><p class="note">Growth rates are applied each year, FY2027–FY2029</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>What moves FY2029 EBIT</h3><p class="note">Change vs Base ($B) when one driver moves to Bear / Bull</p><div class="ch"><canvas id="cTorn"></canvas></div></div>
+    <div class="card"><h3>FY2029 EBIT distribution</h3><p class="note">Monte Carlo, 20,000 runs. Probability of beating the FY24 revenue peak: <b id="p24"></b></p><div class="ch"><canvas id="cMc"></canvas></div></div>
+  </div>
+</section>
+
+</main></div>
+<script>
+const D={"fy":["FY2017","FY2018","FY2019","FY2020","FY2021","FY2022","FY2023","FY2024","FY2025","FY2026"],"inc":{"Revenue":[34.35,36.4,39.12,37.4,44.54,46.71,51.22,51.36,46.31,46.4],"Gross_Margin":[0.446,0.4379,0.4471,0.434,0.4499,0.4601,0.435,0.4461,0.4269,0.4291],"SGA_Pct":[0.3351,0.3297,0.3246,0.3342,0.3148,0.3168,0.3198,0.3228,0.3474,0.3472],"Operating_Margin":[0.1109,0.1082,0.1224,0.0997,0.1352,0.1432,0.1152,0.1232,0.0795,0.0819],"Net_Income":[4.24,1.93,4.03,2.54,5.73,6.05,5.07,5.7,3.22,3.11],"EBIT":[3.81,3.94,4.79,3.73,6.02,6.69,5.9,6.33,3.68,3.8],"EPS_Diluted":[2.56,1.19,2.49,1.6,3.56,3.75,3.23,3.73,2.16,2.1]},"reg":{"North America":[15.22,15.94,16.24,14.48,17.18,18.35,21.61,21.4,19.57,20.51],"EMEA":[9.24,9.65,10.18,9.35,11.46,12.48,13.42,13.61,12.26,12.57],"Greater China":[4.24,5.13,6.21,6.68,8.29,7.55,6.75,7.55,6.59,5.85],"APLA":[4.72,4.98,5.27,5.06,5.34,5.96,6.7,6.73,6.25,6.24],"Converse":[1.97,1.88,1.91,1.85,2.21,2.35,2.43,2.08,1.7,1.2]},"chan":{"DTC":[9.1,10.4,11.75,12.38,16.37,18.73,21.31,21.52,18.77,17.7],"Wholesale":[23.28,24.12,25.46,22.85,25.96,25.6,27.48,27.76,25.9,27.5],"share":[0.281,0.3013,0.3158,0.3514,0.3867,0.4225,0.4368,0.4367,0.4202,0.3916]},"q":{"North America":{"lab":["FY2022_Q1","FY2022_Q2","FY2022_Q3","FY2022_Q4","FY2023_Q1","FY2023_Q2","FY2023_Q3","FY2023_Q4","FY2024_Q1","FY2024_Q2","FY2024_Q3","FY2024_Q4","FY2025_Q1","FY2025_Q2","FY2025_Q3","FY2025_Q4","FY2026_Q1","FY2026_Q2","FY2026_Q3","FY2026_Q4"],"act":[4.89,4.64,4.45,4.37,5.07,5.83,5.41,5.3,5.42,5.63,5.17,5.18,4.83,4.83,4.93,4.98,5.04,5.18,5.28,5.01],"fit":[4.694,4.844,4.853,4.709,5.008,5.169,5.178,5.025,5.344,5.515,5.526,5.362,4.766,4.918,4.928,4.782,5.086,5.248,5.258,5.102]},"EMEA":{"lab":["FY2022_Q1","FY2022_Q2","FY2022_Q3","FY2022_Q4","FY2023_Q1","FY2023_Q2","FY2023_Q3","FY2023_Q4","FY2024_Q1","FY2024_Q2","FY2024_Q3","FY2024_Q4","FY2025_Q1","FY2025_Q2","FY2025_Q3","FY2025_Q4","FY2026_Q1","FY2026_Q2","FY2026_Q3","FY2026_Q4"],"act":[3.08,3.17,3.08,3.15,3.33,3.48,3.28,3.33,3.41,3.57,3.34,3.29,3.24,3.24,3.12,2.66,3.14,3.26,3.18,2.99],"fit":[3.171,3.245,3.225,3.103,3.274,3.351,3.33,3.204,3.38,3.46,3.438,3.309,3.034,3.106,3.086,2.97,3.133,3.207,3.187,3.067]},"Greater China":{"lab":["FY2022_Q1","FY2022_Q2","FY2022_Q3","FY2022_Q4","FY2023_Q1","FY2023_Q2","FY2023_Q3","FY2023_Q4","FY2024_Q1","FY2024_Q2","FY2024_Q3","FY2024_Q4","FY2025_Q1","FY2025_Q2","FY2025_Q3","FY2025_Q4","FY2026_Q1","FY2026_Q2","FY2026_Q3","FY2026_Q4"],"act":[1.98,1.84,2.16,1.57,1.66,1.72,1.99,1.68,1.74,1.86,2.08,1.87,1.67,1.73,1.73,1.46,1.67,1.44,1.38,1.36],"fit":[1.91,1.929,1.89,1.794,1.867,1.885,1.848,1.754,1.825,1.843,1.806,1.715,1.591,1.606,1.574,1.494,1.555,1.57,1.539,1.46]},"APLA":{"lab":["FY2022_Q1","FY2022_Q2","FY2022_Q3","FY2022_Q4","FY2023_Q1","FY2023_Q2","FY2023_Q3","FY2023_Q4","FY2024_Q1","FY2024_Q2","FY2024_Q3","FY2024_Q4","FY2025_Q1","FY2025_Q2","FY2025_Q3","FY2025_Q4","FY2026_Q1","FY2026_Q2","FY2026_Q3","FY2026_Q4"],"act":[1.5,1.46,1.4,1.6,1.53,1.67,1.63,1.87,1.57,1.79,1.65,1.72,1.46,1.57,1.64,1.58,1.57,1.55,1.54,1.58],"fit":[1.487,1.534,1.537,1.49,1.584,1.634,1.637,1.588,1.688,1.741,1.744,1.691,1.487,1.534,1.537,1.49,1.584,1.634,1.637,1.588]}},"dyn":{"North America":{"trend_q":0.0162,"trend_p":0.0003,"trend_ann":0.0671,"trend_ann_lo":0.0305,"trend_ann_hi":0.1049,"post":-0.1642,"post_lo":-0.2348,"post_hi":-0.0871,"post_p":0.0001},"EMEA":{"trend_q":0.008,"trend_p":0.0091,"trend_ann":0.0325,"trend_ann_lo":0.008,"trend_ann_hi":0.0577,"post":-0.1307,"post_lo":-0.2028,"post_hi":-0.052,"post_p":0.0015},"Greater China":{"trend_q":-0.0057,"trend_p":0.4876,"trend_ann":-0.0225,"trend_ann_lo":-0.0834,"trend_ann_hi":0.0424,"post":-0.1085,"post_lo":-0.2549,"post_hi":0.0667,"post_p":0.2096},"APLA":{"trend_q":0.0158,"trend_p":0.0005,"trend_ann":0.0652,"trend_ann_lo":0.0278,"trend_ann_hi":0.104,"post":-0.1727,"post_lo":-0.2559,"post_hi":-0.0801,"post_p":0.0005}},"diag":{"n":80.0,"k":14.0,"r2":0.9845,"adj_r2":0.9812,"r2_m1":0.978,"adj_r2_m1":0.9748,"aic_m1":-172.9274,"aic_m2":-193.096,"bic_m1":-146.7251,"bic_m2":-157.3656,"F_break":6.8585,"p_break":0.0001,"dw":1.7958,"bp_p":0.0266,"shapiro_p":0.8279,"rmse":0.06,"reset_p":0.3972},"fc":{"North America":{"Forecast":[5.016,5.022,5.028,5.034,5.04,5.046,5.053,5.059,5.065,5.071,5.077,5.083],"Lo80":[4.618,4.459,4.339,4.239,4.151,4.072,4.0,3.933,3.871,3.812,3.757,3.704],"Hi80":[5.414,5.585,5.717,5.83,5.93,6.021,6.105,6.184,6.258,6.329,6.396,6.461],"Lo95":[4.408,4.162,3.974,3.817,3.68,3.556,3.443,3.337,3.239,3.146,3.059,2.975],"Hi95":[5.625,5.883,6.082,6.251,6.401,6.537,6.663,6.78,6.89,6.995,7.095,7.191]},"EMEA":{"Forecast":[3.191,3.265,3.165,3.034,3.199,3.271,3.169,3.036,3.202,3.273,3.171,3.037],"Lo80":[2.927,2.966,2.85,2.71,2.797,2.846,2.737,2.603,2.701,2.754,2.649,2.519],"Hi80":[3.454,3.564,3.48,3.358,3.601,3.696,3.601,3.469,3.702,3.793,3.693,3.556],"Lo95":[2.788,2.807,2.683,2.538,2.584,2.621,2.509,2.374,2.436,2.479,2.373,2.244],"Hi95":[3.593,3.723,3.647,3.529,3.814,3.921,3.829,3.698,3.967,4.068,3.969,3.83]},"Greater China":{"Forecast":[1.557,1.344,1.288,1.269,1.454,1.254,1.202,1.185,1.357,1.171,1.122,1.106],"Lo80":[1.249,1.051,1.002,0.987,1.012,0.855,0.816,0.803,0.838,0.709,0.677,0.667],"Hi80":[1.865,1.636,1.574,1.552,1.895,1.654,1.589,1.567,1.877,1.633,1.568,1.546],"Lo95":[1.086,0.896,0.851,0.837,0.778,0.644,0.611,0.602,0.563,0.464,0.441,0.434],"Hi95":[2.028,1.791,1.725,1.702,2.129,1.865,1.793,1.769,2.152,1.877,1.804,1.779]},"APLA":{"Forecast":[1.571,1.572,1.573,1.574,1.575,1.576,1.577,1.578,1.579,1.58,1.581,1.582],"Lo80":[1.428,1.351,1.296,1.25,1.211,1.175,1.142,1.112,1.084,1.058,1.032,1.009],"Hi80":[1.714,1.792,1.85,1.897,1.939,1.977,2.012,2.044,2.074,2.103,2.13,2.156],"Lo95":[1.352,1.235,1.15,1.079,1.018,0.963,0.912,0.866,0.822,0.781,0.742,0.705],"Hi95":[1.789,1.909,1.996,2.069,2.132,2.189,2.242,2.291,2.337,2.38,2.421,2.46]}},"fclab":["FY2027_Q1","FY2027_Q2","FY2027_Q3","FY2027_Q4","FY2028_Q1","FY2028_Q2","FY2028_Q3","FY2028_Q4","FY2029_Q1","FY2029_Q2","FY2029_Q3","FY2029_Q4"],"best":{"North America":"Theta","EMEA":"Ensemble (mean)","Greater China":"SARIMA(1,0,0)(0,1,0)4","APLA":"Theta"},"perf":[["APLA","ETS (A,Ad,A)",0.0697,0.977],["APLA","Ensemble (mean)",0.0583,0.817],["APLA","Log-trend regression",0.0946,1.329],["APLA","SARIMA(1,0,0)(0,1,0)4",0.0624,0.879],["APLA","Seasonal naive",0.0508,0.712],["APLA","Theta",0.0462,0.645],["EMEA","ETS (A,Ad,A)",0.0815,1.242],["EMEA","Ensemble (mean)",0.0745,1.129],["EMEA","Log-trend regression",0.0938,1.432],["EMEA","SARIMA(1,0,0)(0,1,0)4",0.0958,1.493],["EMEA","Seasonal naive",0.0802,1.213],["EMEA","Theta",0.0845,1.297],["Greater China","ETS (A,Ad,A)",0.1663,1.353],["Greater China","Ensemble (mean)",0.1424,1.159],["Greater China","Log-trend regression",0.1435,1.159],["Greater China","SARIMA(1,0,0)(0,1,0)4",0.1255,1.051],["Greater China","Seasonal naive",0.1553,1.26],["Greater China","Theta",0.1453,1.165],["North America","ETS (A,Ad,A)",0.0603,0.691],["North America","Ensemble (mean)",0.0427,0.488],["North America","Log-trend regression",0.0821,0.939],["North America","SARIMA(1,0,0)(0,1,0)4",0.0627,0.725],["North America","Seasonal naive",0.0572,0.662],["North America","Theta",0.0347,0.404]],"cl":[["North America","FY2019","In line",0.0188,-1.008,-1.401,-2.28],["North America","FY2020","Losing ground",-0.1084,-2.239,-0.814,-2.8],["North America","FY2021","Gaining ground",0.1865,0.806,-0.584,-0.14],["North America","FY2022","Gaining ground",0.0681,1.297,-0.225,0.71],["North America","FY2023","Gaining ground",0.1777,2.948,0.85,2.91],["North America","FY2024","In line",-0.0097,0.051,-0.479,-0.52],["North America","FY2025","In line",-0.0855,-0.403,1.242,0.59],["North America","FY2026","Gaining ground",0.048,1.033,1.49,1.94],["EMEA","FY2019","In line",0.0549,0.13,-0.515,-0.49],["EMEA","FY2020","In line",-0.0815,-1.124,-0.024,-1.02],["EMEA","FY2021","Gaining ground",0.2257,1.724,-0.298,0.73],["EMEA","FY2022","Gaining ground",0.089,1.782,-0.251,0.99],["EMEA","FY2023","In line",0.0753,0.376,-0.799,-0.52],["EMEA","FY2024","In line",0.0142,0.415,0.188,0.3],["EMEA","FY2025","In line",-0.0992,-0.755,0.876,-0.03],["EMEA","FY2026","In line",0.0253,0.201,0.867,0.62],["Greater China","FY2019","Gaining ground",0.2105,3.501,-0.233,1.78],["Greater China","FY2020","Gaining ground",0.0757,2.518,0.689,1.99],["Greater China","FY2021","Gaining ground",0.241,2.411,-0.853,0.75],["Greater China","FY2022","Losing ground",-0.0893,-1.889,-1.588,-2.45],["Greater China","FY2023","Losing ground",-0.106,-3.445,-1.074,-2.99],["Greater China","FY2024","Gaining ground",0.1185,1.733,1.126,1.52],["Greater China","FY2025","In line",-0.1272,-1.04,0.438,-0.47],["Greater China","FY2026","Losing ground",-0.1123,-2.531,0.121,-1.62],["APLA","FY2019","In line",0.0582,0.308,-0.404,-0.21],["APLA","FY2020","In line",-0.0398,-0.151,0.429,0.06],["APLA","FY2021","In line",0.0553,-1.223,-1.218,-1.54],["APLA","FY2022","Gaining ground",0.1161,1.605,0.048,0.77],["APLA","FY2023","Gaining ground",0.1242,1.413,-0.566,0.32],["APLA","FY2024","In line",0.0045,0.31,-0.074,0.02],["APLA","FY2025","In line",-0.0713,-0.249,1.046,0.39],["APLA","FY2026","In line",-0.0016,-0.321,0.49,-0.05],["Converse","FY2019","In line",0.016,-0.561,-0.01,-0.28],["Converse","FY2020","In line",-0.0314,-0.147,0.528,0.06],["Converse","FY2021","Gaining ground",0.1946,1.209,-0.779,0.02],["Converse","FY2022","Gaining ground",0.0633,1.014,-0.588,0.07],["Converse","FY2023","In line",0.034,-0.159,-0.469,-0.29],["Converse","FY2024","Losing ground",-0.144,-2.197,0.267,-0.69],["Converse","FY2025","Losing ground",-0.1827,-2.424,1.401,-0.38],["Converse","FY2026","Losing ground",-0.2941,-4.919,1.148,-1.08]],"clprof":{"Losing ground":{"g1":-0.1481,"g2":-0.0949,"rel":-0.1495,"dshare":-1.7159,"n":7.0},"In line":{"g1":-0.01,"g2":0.0115,"rel":-0.019,"dshare":-0.2973,"n":19.0},"Gaining ground":{"g1":0.1385,"g2":0.099,"rel":0.0537,"dshare":1.0252,"n":14.0}},"corr":{"levels":[[1.0,0.97,0.38,0.97],[0.97,1.0,0.58,0.97],[0.38,0.58,1.0,0.48],[0.97,0.97,0.48,1.0]],"growth":[[1.0,0.6,0.03,0.83],[0.6,1.0,0.27,0.62],[0.03,0.27,1.0,0.3],[0.83,0.62,0.3,1.0]]},"cann":[["Nike Direct vs Wholesale",0.616,0.077,"Mix shift, not $ cannibalization"],["Digital revenue vs Nike-owned stores",-0.537,0.136,"Weak substitution signal"],["Jordan vs Nike Brand ex-Jordan",0.376,0.319,"No evidence of cannibalization"],["Converse vs Nike Brand",0.732,0.025,"Co-move; Converse decline is idiosyncratic"],["Footwear vs Apparel",0.886,0.001,"Complementary"],["Greater China vs North America",0.111,0.776,"Decoupled (diversification)"]],"sc":{"Bear":{"Revenue":[43.9137,42.0047,40.2191],"EBIT":[2.6348,2.5203,2.4131],"Op_Margin":[0.06,0.06,0.06],"Net_Income":[2.2699,2.1748,2.0859],"EPS":[1.5337,1.4695,1.4094]},"Base":{"Revenue":[45.6729,45.387,45.1176],"EBIT":[3.8822,4.1756,4.3764],"Op_Margin":[0.085,0.092,0.097],"Net_Income":[3.3849,3.6343,3.8049],"EPS":[2.2871,2.4556,2.5709]},"Bull":{"Revenue":[47.3666,48.7848,50.2472],"EBIT":[4.7367,5.4151,6.1302],"Op_Margin":[0.1,0.111,0.122],"Net_Income":[4.1595,4.743,5.3579],"EPS":[2.8105,3.2047,3.6202]}},"assump":{"Bear":{"growth":{"North America":[-0.056,-0.0312,-0.0312],"EMEA":[-0.0274,-0.0325,-0.0334],"Greater China":[-0.1224,-0.122,-0.122],"APLA":[-0.0157,-0.0208,-0.0208]},"converse":-0.15,"gm":[0.415,0.415,0.415],"sga":[0.355,0.355,0.355],"tax":0.17},"Base":{"growth":{"North America":[-0.0199,0.0048,0.0048],"EMEA":[0.0067,0.0016,0.0007],"Greater China":[-0.0669,-0.0665,-0.0665],"APLA":[0.0079,0.0027,0.0027]},"converse":-0.05,"gm":[0.43,0.433,0.435],"sga":[0.345,0.341,0.338],"tax":0.15},"Bull":{"growth":{"North America":[0.0146,0.0394,0.0394],"EMEA":[0.0394,0.0343,0.0335],"Greater China":[-0.0136,-0.0132,-0.0132],"APLA":[0.0305,0.0254,0.0253]},"converse":0.05,"gm":[0.438,0.443,0.448],"sga":[0.338,0.332,0.326],"tax":0.14}},"base26":{"North America":20.51,"EMEA":12.57,"Greater China":5.85,"APLA":6.24,"Converse":1.2},"corp26":0.03,"torn":[["Gross margin",-0.902,0.587],["SG&A % of revenue",-0.767,0.541],["North America growth",-0.206,0.212],["EMEA growth",-0.121,0.124],["Greater China growth",-0.078,0.084],["APLA growth",-0.042,0.042],["Converse growth",-0.028,0.035]],"mch":{"rev":[[1,0,3,2,10,21,69,97,164,273,381,570,813,1030,1204,1436,1541,1638,1659,1614,1525,1291,1161,913,710,536,408,308,217,152,106,58,37,14,22,10,2,0,2,2],[29.95,30.77,31.58,32.4,33.22,34.04,34.86,35.68,36.49,37.31,38.13,38.95,39.77,40.59,41.4,42.22,43.04,43.86,44.68,45.5,46.31,47.13,47.95,48.77,49.59,50.41,51.22,52.04,52.86,53.68,54.5,55.32,56.13,56.95,57.77,58.59,59.41,60.23,61.04,61.86,62.68]],"ebit":[[2,3,3,12,33,64,139,192,274,373,577,713,926,1031,1230,1400,1419,1508,1459,1403,1355,1180,1078,849,709,548,451,321,258,181,126,64,39,33,22,14,7,2,1,1],[1.991,2.108,2.226,2.344,2.462,2.58,2.698,2.816,2.934,3.052,3.17,3.287,3.405,3.523,3.641,3.759,3.877,3.995,4.113,4.231,4.349,4.466,4.584,4.702,4.82,4.938,5.056,5.174,5.292,5.41,5.528,5.645,5.763,5.881,5.999,6.117,6.235,6.353,6.471,6.589,6.707]]},"mcq":{"rev":[40.219,45.044,50.247],"ebit":[3.346,4.121,4.952],"p24":0.063,"p10":0.242},"rb":{"North America":-0.89,"EMEA":-1.04,"Greater China":-1.7,"APLA":-0.49,"Converse":-0.88,"Corporate & Other":0.04},"mb":{"om_24":0.1232,"om_26":0.0819,"gm_eff":-0.017,"dc_eff":0.0006,"oh_eff":-0.0249}};
+const R4=["North America","EMEA","Greater China","APLA"];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let C={};const charts={};
+function palette(){C={ink:css('--ink'),muted:css('--muted'),line:css('--line'),orange:css('--orange'),navy:css('--navy'),gold:css('--gold'),green:css('--green'),stone:css('--stone'),red:css('--red'),card:css('--card')};
+ C.reg={"North America":C.navy,"EMEA":C.orange,"Greater China":C.gold,"APLA":C.green,"Converse":C.stone};}
+const fyS=D.fy.map(f=>"FY"+f.slice(4));
+const $=s=>document.querySelector(s);const pct=(v,d=1)=>(v*100).toFixed(d)+"%";const sp=(v,d=1)=>(v>=0?"+":"")+(v*100).toFixed(d)+"%";
+function alpha(hex,a){hex=hex.replace('#','');const n=parseInt(hex,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+function base(extra={}){return Object.assign({responsive:true,maintainAspectRatio:false,animation:{duration:400},
+ plugins:{legend:{labels:{color:C.muted,boxWidth:12,font:{family:'Poppins',size:12}}},tooltip:{titleFont:{family:'Poppins'},bodyFont:{family:'Poppins'}}},
+ scales:{x:{ticks:{color:C.muted,font:{family:'Poppins'}},grid:{display:false},border:{color:C.line}},y:{ticks:{color:C.muted,font:{family:'Poppins'}},grid:{color:C.line},border:{display:false}}}},extra)}
+function mk(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),cfg)}
+function bridge(labels,start,deltas,end,fmt){const bars=[],cols=[];let cur=start;bars.push([0,start]);cols.push(C.ink);
+ deltas.forEach(d=>{bars.push([cur,cur+d]);cols.push(d<0?C.red:C.green);cur+=d});bars.push([0,end]);cols.push(C.ink);
+ return {type:'bar',data:{labels,datasets:[{data:bars,backgroundColor:cols,barPercentage:.7}]},options:base({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.raw[1]-c.raw[0];return fmt(c.dataIndex==0||c.dataIndex==labels.length-1?c.raw[1]:v)}}}}})}}
+
+function overview(){
+ mk('cOv1',{type:'bar',data:{labels:fyS,datasets:[
+  {type:'line',label:'Operating margin',data:D.inc.Operating_Margin,borderColor:C.navy,backgroundColor:C.navy,yAxisID:'y1',tension:.25,pointRadius:3},
+  {label:'Revenue ($B)',data:D.inc.Revenue,backgroundColor:fyS.map((f,i)=>i>=8?C.orange:(i==7?C.ink:alpha(C.stone,.7))),yAxisID:'y'}]},
+  options:base({scales:{x:{ticks:{color:C.muted},grid:{display:false}},y:{min:0,max:60,ticks:{color:C.muted,callback:v=>'$'+v+'B'},grid:{color:C.line}},
+   y1:{position:'right',min:0,max:.2,ticks:{color:C.navy,callback:v=>pct(v,0)},grid:{display:false}}}})});
+ const rb=D.rb;const lab=Object.keys(rb);
+ mk('cOv2',{type:'bar',data:{labels:lab.map(l=>l.replace('Corporate & Other','Corp.')),datasets:[{data:lab.map(k=>rb[k]),backgroundColor:lab.map(k=>rb[k]<0?C.red:C.green)}]},
+  options:base({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:C.muted,callback:v=>(v<0?'−$':'$')+Math.abs(v)+'B'},grid:{color:C.line}},y:{ticks:{color:C.ink},grid:{display:false}}}})});
+ const m=D.mb;mk('cOv3',bridge(['FY24 margin','Gross margin','Demand creation','Overhead','FY26 margin'],m.om_24,[m.gm_eff,m.dc_eff,m.oh_eff],m.om_26,v=>pct(v)));
+ charts.cOv3.options.scales.y.ticks.callback=v=>pct(v,0);charts.cOv3.update();
+}
+let regCur="North America";
+function segBtns(el,items,cur,fn){el.innerHTML=items.map(i=>`<button aria-pressed="${i==cur}" data-k="${i}">${i}</button>`).join('');
+ el.onclick=e=>{const b=e.target.closest('button');if(!b)return;[...el.children].forEach(x=>x.setAttribute('aria-pressed',x==b));fn(b.dataset.k)}}
+function regions(){
+ $('#r2').textContent=pct(D.diag.r2);
+ segBtns($('#regSel'),R4,regCur,k=>{regCur=k;drawReg()});drawReg();
+ $('#tDyn tbody').innerHTML=R4.map(r=>{const d=D.dyn[r];return `<tr><td>${r}</td><td class="n">${sp(d.trend_ann)}</td><td class="n ${d.post<0?'neg':''}">${sp(d.post)}</td><td class="n">${d.post_p<.001?'<0.001':d.post_p.toFixed(3)}</td></tr>`}).join('');
+ mk('cReg2',{type:'bar',data:{labels:fyS,datasets:[...R4,"Converse"].map(r=>({label:r,data:D.reg[r],backgroundColor:C.reg[r]}))},
+  options:base({scales:{x:{stacked:true,ticks:{color:C.muted},grid:{display:false}},y:{stacked:true,ticks:{color:C.muted,callback:v=>'$'+v+'B'},grid:{color:C.line}}}})});
+}
+function drawReg(){const q=D.q[regCur];$('#regTitle').textContent=regCur;
+ mk('cReg1',{type:'line',data:{labels:q.lab.map(l=>l.replace('FY20','FY').replace('_',' ')),datasets:[
+  {label:'Actual',data:q.act,borderColor:C.reg[regCur],backgroundColor:C.reg[regCur],pointRadius:3,tension:.2},
+  {label:'Model fit',data:q.fit,borderColor:C.ink,borderDash:[5,4],pointRadius:0,borderWidth:1.5}]},
+  options:base({scales:{x:{ticks:{color:C.muted,maxRotation:0,autoSkip:true,maxTicksLimit:10},grid:{display:false}},y:{ticks:{color:C.muted,callback:v=>'$'+v.toFixed(1)+'B'},grid:{color:C.line}}}})});}
+let fcCur="North America";
+function forecast(){segBtns($('#fcSel'),R4,fcCur,k=>{fcCur=k;drawFc()});drawFc()}
+function drawFc(){const q=D.q[fcCur],f=D.fc[fcCur];const labs=[...q.lab,...D.fclab].map(l=>l.replace('FY20','FY').replace('_',' '));
+ const n=q.act.length,pad=a=>Array(n-1).fill(null).concat([q.act[n-1]]).concat(a);const col=C.reg[fcCur];
+ $('#fcTitle').textContent=fcCur;$('#fcNote').textContent=`Model: ${D.best[fcCur]}. FY2027 forecast $${f.Forecast.slice(0,4).reduce((a,b)=>a+b,0).toFixed(2)}B vs FY2026 $${D.reg[fcCur][9].toFixed(2)}B.`;
+ mk('cFc',{type:'line',data:{labels:labs,datasets:[
+  {label:'95% interval',data:pad(f.Hi95),borderWidth:0,pointRadius:0,backgroundColor:alpha(col,.12),fill:'+1'},
+  {label:'_lo95',data:pad(f.Lo95),borderWidth:0,pointRadius:0},
+  {label:'80% interval',data:pad(f.Hi80),borderWidth:0,pointRadius:0,backgroundColor:alpha(col,.25),fill:'+1'},
+  {label:'_lo80',data:pad(f.Lo80),borderWidth:0,pointRadius:0},
+  {label:'Actual',data:q.act.concat(Array(12).fill(null)),borderColor:col,backgroundColor:col,pointRadius:2.5},
+  {label:'Forecast',data:pad(f.Forecast),borderColor:col,borderDash:[6,4],pointRadius:0}]},
+  options:base({plugins:{legend:{labels:{color:C.muted,filter:i=>!i.text.startsWith('_')}}},scales:{x:{ticks:{color:C.muted,maxRotation:0,maxTicksLimit:9},grid:{display:false}},y:{ticks:{color:C.muted,callback:v=>'$'+v.toFixed(1)+'B'},grid:{color:C.line}}}})});
+ const rows=D.perf.filter(p=>p[0]==fcCur).sort((a,b)=>a[3]-b[3]);
+ $('#tPerf tbody').innerHTML=rows.map(p=>`<tr style="${p[1]==D.best[fcCur]?'font-weight:600':''}"><td>${p[1]}</td><td class="n">${pct(p[2])}</td><td class="n">${p[3].toFixed(2)}</td></tr>`).join('');}
+function segments(){const segC={"Losing ground":C.red,"In line":"#EADBB4","Gaining ground":C.green};
+ const fys=[...new Set(D.cl.map(c=>c[1]))].sort();const regs=[...R4,"Converse"];const hm=$('#hm');hm.style.gridTemplateColumns=`110px repeat(${fys.length},minmax(46px,1fr))`;
+ let h='<div class="lab"></div>'+fys.map(f=>`<div class="lab" style="text-align:center">${f.replace('FY20',"FY")}</div>`).join('');
+ regs.forEach(r=>{h+=`<div class="lab">${r}</div>`;fys.forEach(f=>{const c=D.cl.find(x=>x[0]==r&&x[1]==f);h+=`<div title="${r} ${f}: ${c[2]}" style="background:${segC[c[2]]};color:${c[2]=='In line'?'#1B2430':'#fff'}">${sp(c[3],0)}</div>`})});hm.innerHTML=h;
+ mk('cSeg',{type:'scatter',data:{datasets:Object.keys(segC).map(s=>({label:s,data:D.cl.filter(c=>c[2]==s).map(c=>({x:c[4],y:c[5],t:`${c[0]} ${c[1]}`})),backgroundColor:segC[s],pointRadius:6}))},
+  options:base({plugins:{tooltip:{callbacks:{label:c=>c.raw.t}},legend:{labels:{color:C.muted}}},scales:{x:{title:{display:true,text:'PC1',color:C.muted},ticks:{color:C.muted},grid:{color:C.line}},y:{title:{display:true,text:'PC2',color:C.muted},ticks:{color:C.muted},grid:{color:C.line}}}})});
+ $('#tSeg tbody').innerHTML=Object.entries(D.clprof).map(([s,p])=>`<tr><td>${s}</td><td class="n">${p.n}</td><td class="n">${sp(p.g1)}</td><td class="n">${sp(p.rel)}</td><td class="n">${p.dshare>0?'+':''}${p.dshare.toFixed(2)}pp</td></tr>`).join('');}
+let corrK='growth';
+function corrDraw(){const M=D.corr[corrK];const el=$('#corrHm');const sh=["N. America","EMEA","G. China","APLA"];el.style.gridTemplateColumns='80px repeat(4,minmax(52px,1fr))';
+ let h='<div class="lab"></div>'+sh.map(s=>`<div class="lab" style="text-align:center">${s}</div>`).join('');
+ M.forEach((row,i)=>{h+=`<div class="lab">${sh[i]}</div>`;row.forEach(v=>{h+=`<div style="background:${alpha(v>=0?C.orange:C.navy,Math.abs(v)*.85)};color:${Math.abs(v)>.55?'#fff':C.ink}">${v.toFixed(2)}</div>`})});el.innerHTML=h;}
+function comove(){corrDraw();$('#corrSel').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#corrSel').children].forEach(x=>x.setAttribute('aria-pressed',x==b));corrK=b.dataset.k;corrDraw()};
+ const cn=[...D.cann].sort((a,b)=>b[1]-a[1]);
+ mk('cCann',{type:'bar',data:{labels:cn.map(c=>c[0]),datasets:[{data:cn.map(c=>c[1]),backgroundColor:cn.map(c=>c[1]<-.3?C.red:c[1]>.5?C.green:C.stone)}]},
+  options:base({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:-1,max:1,ticks:{color:C.muted},grid:{color:C.line}},y:{ticks:{color:C.ink,font:{size:11}},grid:{display:false}}}})});
+ $('#tCann tbody').innerHTML=cn.map(c=>`<tr><td>${c[0]}</td><td class="n">${c[1]>0?'+':''}${c[1].toFixed(2)}</td><td>${c[3]}</td></tr>`).join('');
+ mk('cChan',{type:'line',data:{labels:fyS,datasets:[{label:'NIKE Direct',data:D.chan.DTC,borderColor:C.orange,backgroundColor:C.orange,tension:.2},{label:'Wholesale',data:D.chan.Wholesale,borderColor:C.navy,backgroundColor:C.navy,tension:.2},
+  {label:'DTC share (right)',data:D.chan.share,yAxisID:'y1',borderColor:alpha(C.orange,.5),borderDash:[4,4],pointRadius:0}]},
+  options:base({scales:{x:{ticks:{color:C.muted},grid:{display:false}},y:{min:0,ticks:{color:C.muted,callback:v=>'$'+v+'B'},grid:{color:C.line}},y1:{position:'right',min:0,max:.6,ticks:{color:C.muted,callback:v=>pct(v,0)},grid:{display:false}}}})});}
+
+// ---------------- scenario engine (mirrors the Python / Excel model) ----------------
+const S={};
+function run(p){let rv={...D.base26},out=[];for(let i=0;i<3;i++){let rev=D.corp26;R4.forEach(r=>{rv[r]*=1+p.g[r];rev+=rv[r]});rv.Converse*=1+p.cvs;rev+=rv.Converse;
+ const ebit=rev*(p.gm-p.sga);const ni=(ebit+.1)*(1-p.tax);out.push({rev,ebit,om:ebit/rev,ni,eps:ni/1.48})}return out}
+const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+function preset(s){const a=D.assump[s];const g={};R4.forEach(r=>g[r]=avg(a.growth[r]));return {g,cvs:a.converse,gm:avg(a.gm),sga:avg(a.sga),tax:a.tax}}
+const SL=[...R4.map(r=>({k:'g.'+r,lab:r+' growth',min:-.15,max:.12,step:.005})),{k:'cvs',lab:'Converse growth',min:-.3,max:.15,step:.01},{k:'gm',lab:'Gross margin',min:.39,max:.47,step:.001},{k:'sga',lab:'SG&A % of revenue',min:.30,max:.38,step:.001},{k:'tax',lab:'Tax rate',min:.10,max:.20,step:.005}];
+let P=preset('Base');
+const getv=k=>k.startsWith('g.')?P.g[k.slice(2)]:P[k];const setv=(k,v)=>{if(k.startsWith('g.'))P.g[k.slice(2)]=v;else P[k]=v};
+function sliders(){$('#sliders').innerHTML='<h3>Drivers</h3><p class="note">Growth rates apply each year, FY2027–FY2029. Margins are held flat.</p>'+SL.map((s,i)=>`<label class="sl" for="s${i}"><span>${s.lab}</span><output id="o${i}"></output><input type="range" id="s${i}" min="${s.min}" max="${s.max}" step="${s.step}" value="${getv(s.k)}"></label>`).join('');
+ SL.forEach((s,i)=>{const el=$('#s'+i);const o=$('#o'+i);const upd=()=>{o.textContent=(s.k.startsWith('g.')||s.k=='cvs')?sp(+el.value):pct(+el.value)};upd();el.oninput=()=>{setv(s.k,+el.value);upd();drawSc()}})}
+function scenario(){ $('#scSel').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#scSel').children].forEach(x=>x.setAttribute('aria-pressed',x==b));P=preset(b.dataset.s);sliders();drawSc()};
+ sliders();drawSc();
+ const t=D.torn;mk('cTorn',{type:'bar',data:{labels:t.map(x=>x[0]),datasets:[{label:'Bear',data:t.map(x=>x[1]),backgroundColor:C.red},{label:'Bull',data:t.map(x=>x[2]),backgroundColor:C.green}]},
+  options:base({indexAxis:'y',scales:{x:{stacked:true,ticks:{color:C.muted,callback:v=>(v>0?'+':'')+v.toFixed(1)},grid:{color:C.line}},y:{stacked:true,ticks:{color:C.ink},grid:{display:false}}}})});
+ const [h,e]=D.mch.ebit;const q=D.mcq.ebit;$('#p24').textContent=pct(D.mcq.p24,0);
+ mk('cMc',{type:'bar',data:{labels:e.slice(0,-1).map((v,i)=>((v+e[i+1])/2).toFixed(2)),datasets:[{data:h,backgroundColor:e.slice(0,-1).map(v=>v<q[0]||v>q[2]?alpha(C.orange,.4):C.orange),barPercentage:1,categoryPercentage:1}]},
+  options:base({plugins:{legend:{display:false},tooltip:{callbacks:{title:c=>'EBIT ≈ $'+c[0].label+'B'}}},scales:{x:{ticks:{color:C.muted,maxTicksLimit:8,callback:function(v){return '$'+this.getLabelForValue(v)+'B'}},grid:{display:false}},y:{display:false}}})});}
+function drawSc(){const me=run(P);const pr={Bear:run(preset('Bear')),Base:run(preset('Base')),Bull:run(preset('Bull'))};
+ const labs=['FY24','FY25','FY26','FY27','FY28','FY29'];const hist=[D.inc.Revenue[7],D.inc.Revenue[8],D.inc.Revenue[9]];
+ const line=(arr,col,w,dash,l)=>({label:l,data:[...hist,...arr.map(x=>x.rev)],borderColor:col,backgroundColor:col,borderWidth:w,borderDash:dash,pointRadius:w>2?3:0,tension:.15});
+ mk('cSc',{type:'line',data:{labels:labs,datasets:[line(pr.Bear,C.red,1.5,[4,4],'Bear'),line(pr.Base,C.ink,1.5,[4,4],'Base'),line(pr.Bull,C.green,1.5,[4,4],'Bull'),line(me,C.orange,3,[],'Your scenario')]},
+  options:base({animation:false,scales:{x:{ticks:{color:C.muted},grid:{display:false}},y:{min:30,max:60,ticks:{color:C.muted,callback:v=>'$'+v+'B'},grid:{color:C.line}}}})});
+ const rows=[['Revenue',x=>'$'+x.rev.toFixed(1)+'B'],['EBIT',x=>'$'+x.ebit.toFixed(2)+'B'],['Operating margin',x=>pct(x.om)],['Net income',x=>'$'+x.ni.toFixed(2)+'B'],['Diluted EPS',x=>'$'+x.eps.toFixed(2)]];
+ $('#tSc tbody').innerHTML=rows.map(([l,f])=>`<tr><td>${l}</td>${me.map(x=>`<td class="n">${f(x)}</td>`).join('')}</tr>`).join('');}
+
+const inited={};const INIT={overview,regions,forecast,segments,comove,scenario};
+function show(v){document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v==v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==v));
+ INIT[v]();inited[v]=true;window.scrollTo({top:0})}
+document.querySelector('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)show(b.dataset.v)});
+Chart.defaults.font.family='Poppins';palette();show('overview');
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{palette();const v=document.querySelector('.view.on').id;INIT[v]()});
+</script>
+</body>
+</html>
